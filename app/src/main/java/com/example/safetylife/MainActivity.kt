@@ -8,6 +8,7 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
+import android.media.AudioManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -62,6 +63,8 @@ class MainActivity : AppCompatActivity() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geocoder = Geocoder(this, Locale.getDefault())
         getLoaction()
+        val audioManager: AudioManager =
+            getSystemService(AUDIO_SERVICE) as AudioManager
 
         createChannel("userRiskInteraction", "Опасные ситуации")
         val notification = NotificationCompat.Builder(this, "userRiskInteraction")
@@ -125,6 +128,11 @@ class MainActivity : AppCompatActivity() {
                     navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
                     if(navigatorViewModel.uiState.inDangerous){
                         notificationManager.notify(1, notification.build())
+                        //zvuk
+                        val previousVolume: Int = audioManager.mediaCurrentVolume
+                        audioManager.setMediaVolume(3)
+                        Thread.sleep(3000)
+                        if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
                     } else{
                         notificationManager.cancel(1)
                     }
@@ -224,5 +232,25 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
         super.onDestroy()
     }
+    fun AudioManager.setMediaVolume(volumeIndex:Int) {
+        // Set media volume level
+        this.setStreamVolume(
+            AudioManager.STREAM_MUSIC, // Stream type
+            volumeIndex, // Volume index
+            AudioManager.FLAG_SHOW_UI// Flags
+        )
+    }
 
+    // Extension property to get media maximum volume index
+    val AudioManager.mediaMaxVolume:Int
+        get() = this.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+    // Extension property to get media/music current volume index
+    val AudioManager.mediaCurrentVolume:Int
+        get() = this.getStreamVolume(AudioManager.STREAM_MUSIC)
+
+    // Extension function to show toast message
+    fun Context.toast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
 }
