@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         getSupportActionBar()?.setTitle("Safety Life")
-
+        // sd
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geocoder = Geocoder(this, Locale.getDefault())
         getLoaction()
@@ -88,12 +88,7 @@ class MainActivity : AppCompatActivity() {
                 backgroundImage.setImageResource(R.drawable.turnon_active)
                 Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4
                 )}\n" +
-                        "latitude: ${navigatorViewModel.uiState.latitude.format(3)}   longitude: ${navigatorViewModel.uiState.longitude.format(3)}\n" +
-                        "direction: ${navigatorViewModel.uiState.direction.format(3)}\n" +
-                        "userX: ${navigatorViewModel.uiState.userX.format(3)}   userY: ${navigatorViewModel.uiState.userY.format(3)}\n" +
-                        "movedX: ${navigatorViewModel.uiState.userMovedX.format(3)}   movedY: ${navigatorViewModel.uiState.userMovedY.format(3)}\n" +
-                        "point: ${navigatorViewModel.uiState.closestPoint}   size: ${navigatorViewModel.uiState.sizeRoad} type: ${navigatorViewModel.uiState.type}\n" +
-                        "pointX: ${navigatorViewModel.uiState.pointX}   pointY: ${navigatorViewModel.uiState.pointY}",Toast.LENGTH_SHORT).show()
+                        "inDangerous: ${navigatorViewModel.uiState.inDangerous}\n",Toast.LENGTH_SHORT).show()
 
                 isActive = !isActive
             }
@@ -113,9 +108,9 @@ class MainActivity : AppCompatActivity() {
 
         // поделючение JSON
         try{
-            val jsonPointsString  = getJSONFromAssets("roads_points_nsk_akadem.json")
+            val jsonPointsString  = getJSONFromAssets("log_298.json")
             val points = Gson().fromJson(jsonPointsString, PointsOnRoard::class.java)
-            val jsonQuadrantsString  = getJSONFromAssets("chunks_nsk_akadem_64x64.json")
+            val jsonQuadrantsString  = getJSONFromAssets("chunk_log_298.json")
             val quadrants = Gson().fromJson(jsonQuadrantsString, QuadrantsOnMap::class.java)
             navigatorViewModel.loadMapPointsAndQuadrants(points.points, quadrants.quadrants)
         } catch (e: JSONException){
@@ -136,8 +131,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-
     }
 
     override fun onResume() {
