@@ -8,6 +8,7 @@ import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Geocoder
+import android.media.AudioManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -58,10 +59,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         getSupportActionBar()?.setTitle("Safety Life")
-
+        // sd
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geocoder = Geocoder(this, Locale.getDefault())
         getLoaction()
+
+        val audioManager: AudioManager =
+            getSystemService(AUDIO_SERVICE) as AudioManager
 
         createChannel("userRiskInteraction", "Опасные ситуации")
         val notification = NotificationCompat.Builder(this, "userRiskInteraction")
@@ -86,9 +90,18 @@ class MainActivity : AppCompatActivity() {
             } else{
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button_active)
                 backgroundImage.setImageResource(R.drawable.turnon_active)
-                Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4
-                )}\n" +
-                        "inDangerous: ${navigatorViewModel.uiState.inDangerous}\n",Toast.LENGTH_SHORT).show()
+
+                val text = findViewById<TextView>(R.id.textViewConsole)
+                text.text = "Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
+                        "latitude: ${navigatorViewModel.uiState.latitude.format(3)}   longitude: ${navigatorViewModel.uiState.longitude.format(3)}\n" +
+                        "direction: ${navigatorViewModel.uiState.direction.format(3)}\n" +
+                        "userX: ${navigatorViewModel.uiState.userX.format(3)}   userY: ${navigatorViewModel.uiState.userY.format(3)}\n" +
+                        "movedX: ${navigatorViewModel.uiState.userMovedX.format(3)}   movedY: ${navigatorViewModel.uiState.userMovedY.format(3)}\n" +
+                        "point: ${navigatorViewModel.uiState.closestPoint}   size: ${navigatorViewModel.uiState.sizeRoad} type: ${navigatorViewModel.uiState.type}\n" +
+                        "pointX: ${navigatorViewModel.uiState.pointX}   pointY: ${navigatorViewModel.uiState.pointY}"
+
+                Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
+                        "latitude: ${navigatorViewModel.uiState.inDangerous}",Toast.LENGTH_SHORT).show()
 
                 isActive = !isActive
             }
@@ -125,6 +138,11 @@ class MainActivity : AppCompatActivity() {
                     navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
                     if(navigatorViewModel.uiState.inDangerous){
                         notificationManager.notify(1, notification.build())
+                        //zvuk
+                        val previousVolume: Int = audioManager.mediaCurrentVolume
+                        audioManager.setMediaVolume(3)
+                        Thread.sleep(3000)
+                        if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
                     } else{
                         notificationManager.cancel(1)
                     }
@@ -224,5 +242,22 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
         super.onDestroy()
     }
+
+    fun AudioManager.setMediaVolume(volumeIndex:Int) {
+        // Set media volume level
+        this.setStreamVolume(
+            AudioManager.STREAM_MUSIC, // Stream type
+            volumeIndex, // Volume index
+            AudioManager.FLAG_SHOW_UI// Flags
+        )
+    }
+
+    // Extension property to get media maximum volume index
+    val AudioManager.mediaMaxVolume:Int
+        get() = this.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+    // Extension property to get media/music current volume index
+    val AudioManager.mediaCurrentVolume:Int
+        get() = this.getStreamVolume(AudioManager.STREAM_MUSIC)
 
 }
