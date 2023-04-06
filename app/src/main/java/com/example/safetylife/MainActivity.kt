@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity() {
         val lastLocation = fusedLocationProviderClient.lastLocation
 
         lastLocation.addOnSuccessListener {
-            val address = geocoder.getFromLocation(it.latitude,it.longitude, 1)
+            val address = geocoder.getFromLocation(it.latitude, it.longitude, 1)
             val text = findViewById<TextView>(R.id.sityText)
             text.text = address?.get(0)?.locality ?: "0"
         }

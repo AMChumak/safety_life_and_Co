@@ -181,7 +181,7 @@ class NavigatorViewModel : ViewModel() {
             }
             minDist = minimalDistance
 
-            if (minimalDistance < closestRoadPoints[0].size)
+            if (minimalDistance < ceil(closestRoadPoints[0].size.toDouble() / 2))
                 return true
         }
         return false
