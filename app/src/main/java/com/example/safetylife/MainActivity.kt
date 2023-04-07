@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         setContentView(R.layout.activity_main)
 
+
         getSupportActionBar()?.setTitle("Safety Life")
         // sd
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
