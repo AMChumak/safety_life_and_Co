@@ -139,10 +139,10 @@ class MainActivity : AppCompatActivity() {
                     if(navigatorViewModel.uiState.inDangerous){
                         notificationManager.notify(1, notification.build())
                         //zvuk
-                        val previousVolume: Int = audioManager.mediaCurrentVolume
-                        audioManager.setMediaVolume(3)
-                        Thread.sleep(3000)
-                        if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
+                        //val previousVolume: Int = audioManager.mediaCurrentVolume
+                        //audioManager.setMediaVolume(3)
+                        //Thread.sleep(3000)
+                        //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
                     } else{
                         notificationManager.cancel(1)
                     }
@@ -206,7 +206,7 @@ class MainActivity : AppCompatActivity() {
 
     fun createLocationRequest(): LocationRequest {
         val locationRequest = LocationRequest.create().apply {
-            interval = 10000
+            interval = 5000
             fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
