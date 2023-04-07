@@ -13,6 +13,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
+import android.provider.DocumentsContract
 import android.provider.Settings
 import android.util.Log
 import android.view.View
@@ -33,11 +34,15 @@ import com.google.android.gms.location.*
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.collect
 import org.json.JSONException
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    private val LOG_NAME = "Last-Journey.txt";
+
     var pref : SharedPreferences? = null
     private lateinit var geocoder: Geocoder
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -87,23 +92,25 @@ class MainActivity : AppCompatActivity() {
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button)
                 backgroundImage.setImageResource(R.drawable.turnon)
                 //notificationManager.cancel(1);
+
             } else{
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button_active)
                 backgroundImage.setImageResource(R.drawable.turnon_active)
 
                 val text = findViewById<TextView>(R.id.textViewConsole)
                 text.text = "Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
-                        "latitude: ${navigatorViewModel.uiState.latitude.format(3)}   longitude: ${navigatorViewModel.uiState.longitude.format(3)}\n" +
+                        "latitude: ${navigatorViewModel.uiState.latitude.format(6)}   longitude: ${navigatorViewModel.uiState.longitude.format(6)}\n" +
                         "direction: ${navigatorViewModel.uiState.direction.format(3)}\n" +
                         "userX: ${navigatorViewModel.uiState.userX.format(3)}   userY: ${navigatorViewModel.uiState.userY.format(3)}\n" +
                         "movedX: ${navigatorViewModel.uiState.userMovedX.format(3)}   movedY: ${navigatorViewModel.uiState.userMovedY.format(3)}\n" +
                         "point: ${navigatorViewModel.uiState.closestPoint}   size: ${navigatorViewModel.uiState.sizeRoad} type: ${navigatorViewModel.uiState.type}\n" +
                         "pointX: ${navigatorViewModel.uiState.pointX}   pointY: ${navigatorViewModel.uiState.pointY}"
 
-                Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
-                        "latitude: ${navigatorViewModel.uiState.inDangerous}",Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
+                //        "latitude: ${navigatorViewModel.uiState.inDangerous}",Toast.LENGTH_SHORT).show()
 
                 isActive = !isActive
+
             }
             //notificationManager.notify(1, notification.build()) // !1
         }
@@ -121,9 +128,9 @@ class MainActivity : AppCompatActivity() {
 
         // поделючение JSON
         try{
-            val jsonPointsString  = getJSONFromAssets("log_298.json")
+            val jsonPointsString  = getJSONFromAssets("log_300.json")
             val points = Gson().fromJson(jsonPointsString, PointsOnRoard::class.java)
-            val jsonQuadrantsString  = getJSONFromAssets("chunk_log_298.json")
+            val jsonQuadrantsString  = getJSONFromAssets("chunk_log_302.json")
             val quadrants = Gson().fromJson(jsonQuadrantsString, QuadrantsOnMap::class.java)
             navigatorViewModel.loadMapPointsAndQuadrants(points.points, quadrants.quadrants)
         } catch (e: JSONException){
@@ -131,6 +138,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         // создаем locationCallback
+        var historyText = "";
+        var prevTime = System.currentTimeMillis();
+        var positionsCounter = 1;
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
                 p0?: return
@@ -146,6 +156,20 @@ class MainActivity : AppCompatActivity() {
                     } else{
                         notificationManager.cancel(1)
                     }
+
+
+                    // remember previous locations for debug
+                    val multiLine = findViewById<TextView>(R.id.MultiLineHistory)
+//                    historyText = historyText + "[${navigatorViewModel.uiState.latitude.format(6)}|${navigatorViewModel.uiState.longitude.format(6)}]\n";
+//                    multiLine.text = historyText;
+                    var endTime = System.currentTimeMillis();
+//                    historyText = historyText + "${endTime - prevTime}\n";
+//                    multiLine.text = historyText;
+                    historyText = historyText + "${positionsCounter} [${navigatorViewModel.uiState.latitude.format(6)}|${navigatorViewModel.uiState.longitude.format(6)}] - ${endTime-prevTime}\n";
+                    multiLine.text = historyText;
+
+                    prevTime = endTime;
+                    positionsCounter++;
                 }
             }
         }
@@ -206,7 +230,7 @@ class MainActivity : AppCompatActivity() {
 
     fun createLocationRequest(): LocationRequest {
         val locationRequest = LocationRequest.create().apply {
-            interval = 10000
+            interval = 5000
             fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
