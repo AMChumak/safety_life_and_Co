@@ -80,12 +80,12 @@ class NavigatorViewModel : ViewModel() {
         _uiState.dist = minDist
 
         // прибавляем координаты компаса
-        //lastX += userVector[0]
-        //lastY += userVector[1]
+        lastX += userVector[0]
+        lastY += userVector[1]
 
-        //isInDangerous = checkDanger()
+        isInDangerous = checkDanger()
 
-        //_uiState.inDangerous = isInDangerous
+        _uiState.inDangerous = isInDangerous || uiState.inDangerous
     }
 
     private fun checkDanger(): Boolean{
@@ -178,7 +178,7 @@ class NavigatorViewModel : ViewModel() {
             }
             minDist = minimalDistance
 
-            if (minimalDistance < ceil(closestRoadPoints[0].size.toDouble().pow(2) / 2))
+            if (minimalDistance < ceil(closestRoadPoints[0].size.toDouble().pow(2) / 3))
                 return true
         }
         return false

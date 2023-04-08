@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {
 
         val audioManager: AudioManager =
             getSystemService(AUDIO_SERVICE) as AudioManager
+        val previousVolume: Int = audioManager.mediaCurrentVolume
 
         createChannel("userRiskInteraction", "Опасные ситуации")
         val notification = NotificationCompat.Builder(this, "userRiskInteraction")
@@ -138,12 +139,14 @@ class MainActivity : AppCompatActivity() {
                     navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
                     if(navigatorViewModel.uiState.inDangerous){
                         notificationManager.notify(1, notification.build())
+                        audioManager.setMediaVolume(5)
                         //zvuk
                         //val previousVolume: Int = audioManager.mediaCurrentVolume
                         //audioManager.setMediaVolume(3)
                         //Thread.sleep(3000)
                         //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
                     } else{
+                        audioManager.setMediaVolume(previousVolume)
                         notificationManager.cancel(1)
                     }
                 }
@@ -248,7 +251,7 @@ class MainActivity : AppCompatActivity() {
         this.setStreamVolume(
             AudioManager.STREAM_MUSIC, // Stream type
             volumeIndex, // Volume index
-            AudioManager.FLAG_SHOW_UI// Flags
+            0// Flags
         )
     }
 
