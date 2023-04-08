@@ -1,6 +1,4 @@
 package com.example.navigationandmap.ui
-
-
 import android.util.Log
 import androidx.lifecycle.ViewModel
 
@@ -28,7 +26,7 @@ class NavigatorViewModel : ViewModel() {
     private var centerUpdateZoneX: Double = 0.0
     private var centerUpdateZoneY: Double = 0.0
 
-    private var minimalDistance: Double = 10000.0
+    private var minimalDistance: Double = 50000.0
 
     private var userVector: Array<Double> = arrayOf(0.0, 0.0)
 
@@ -181,7 +179,7 @@ class NavigatorViewModel : ViewModel() {
             }
             minDist = minimalDistance
 
-            if (minimalDistance < ceil(closestRoadPoints[0].size.toDouble() / 2))
+            if (minimalDistance < ceil(closestRoadPoints[0].size.toDouble().pow(2) / 4))
                 return true
         }
         return false
@@ -266,7 +264,7 @@ class NavigatorViewModel : ViewModel() {
         val projectionOfVectorToSegment: Array<Double> =
             arrayOf(projectionQuotient * normalVector[0], projectionQuotient * normalVector[1])
         if ((vectorToSegment[0] - projectionOfVectorToSegment[0]) * segmentVector[0] + (vectorToSegment[1] - projectionOfVectorToSegment[1]) * segmentVector[1] < 0) {
-            return sqrt(projectionOfVectorToSegment[0].pow(2) + projectionOfVectorToSegment[1].pow(2))
+            return projectionOfVectorToSegment[0].pow(2) + projectionOfVectorToSegment[1].pow(2)
         } else {
             return countDistanceToPoint(
                 externalPointX,
@@ -283,7 +281,7 @@ class NavigatorViewModel : ViewModel() {
         segmentEndX: Double,
         segmentEndY: Double
     ): Double {
-        return sqrt((segmentBeginX - segmentEndX).pow(2) + (segmentBeginY - segmentEndY).pow(2))
+        return (segmentBeginX - segmentEndX).pow(2) + (segmentBeginY - segmentEndY).pow(2)
     }
 
     private fun createUserVector(angle: Double) {
