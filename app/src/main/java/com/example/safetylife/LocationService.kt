@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,7 @@ class LocationService: Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var locationClient: LocationClient
+
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -60,12 +62,18 @@ class LocationService: Service() {
                 //val lat = location.latitude.toString().takeLast(3)
                 //val long = location.longitude.toString().takeLast(3)
 
-                val lat = location.latitude.toString()
-                val long = location.longitude.toString()
+                val lat = location.latitude.toDouble()
+                val long = location.longitude.toDouble()
                 val updatedNotification = notification.setContentText(
                     "Location: ($lat, $long)"
                 )
                 notificationManager.notify(2, updatedNotification.build())
+                val intent = Intent()
+                intent.putExtra(KEY_LATITUDE, lat)
+                intent.putExtra(KEY_LONGITUDE, long)
+                intent.action = KEY_ON_LOCATION_CHANGED_ACTION
+
+                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
             }
             .launchIn(serviceScope)
 
@@ -85,5 +93,8 @@ class LocationService: Service() {
     companion object {
         const val ACTION_START = "ACTION_START"
         const val ACTION_STOP = "ACTION_STOP"
+        val KEY_LATITUDE = "LATITUDE"
+        val KEY_LONGITUDE = "LONGITUDE"
+        val KEY_ON_LOCATION_CHANGED_ACTION = "LOCATION_CHANGED"
     }
 }

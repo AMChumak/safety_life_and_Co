@@ -94,6 +94,9 @@ class NavigatorViewModel : ViewModel() {
 
         var curPointInd: Int = findClosestPoint(lastX, lastY)
         // для тестирования
+        if(curPointInd == -1){
+            return false
+        }
         myPoint = closestPoints[curPointInd]
 
         minDist = -1.0

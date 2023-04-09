@@ -15,10 +15,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -53,13 +50,17 @@ class MainActivity : AppCompatActivity() {
 
     fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
+    lateinit var notificationManager: NotificationManager
+    lateinit var audioManager: AudioManager
+    var previousVolume: Int = 0
+
     @SuppressLint("ResourceAsColor", "MissingInflatedId", "UseSwitchCompatOrMaterialCode")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen().apply {
 
         }
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
         setContentView(R.layout.activity_main)
 
 
@@ -68,21 +69,15 @@ class MainActivity : AppCompatActivity() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         geocoder = Geocoder(this, Locale.getDefault())
         getLoaction()
-
-        val audioManager: AudioManager =
-            getSystemService(AUDIO_SERVICE) as AudioManager
-        var previousVolume: Int = audioManager.mediaCurrentVolume
-
-
-
-
+        
         createChannel("userRiskInteraction", "Опасные ситуации")
-        val notification = NotificationCompat.Builder(this, "userRiskInteraction")
-            .setContentText("Оглянись! Рядом дорога.")
-            .setContentTitle("Safety Live")
-            .setSmallIcon(R.drawable.notify_icon_foreground)
-            .setPriority(NotificationManager.IMPORTANCE_HIGH)
-            .setOngoing(true)
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        audioManager =
+            getSystemService(AUDIO_SERVICE) as AudioManager
+        previousVolume = audioManager.mediaCurrentVolume
+
+
+
 
         val a = findViewById<Button>(R.id.button2)
         val buttobState = findViewById<Button>(R.id.button2)
@@ -141,6 +136,8 @@ class MainActivity : AppCompatActivity() {
         //для компаса
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver,  IntentFilter(LocatyService.KEY_ON_SENSOR_CHANGED_ACTION))
 
+        //для геолокации
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastLocationReceiver,  IntentFilter(LocationService.KEY_ON_LOCATION_CHANGED_ACTION))
         // поделючение JSON
         try{
             val jsonPointsString  = getJSONFromAssets("log_298.json")
@@ -154,35 +151,77 @@ class MainActivity : AppCompatActivity() {
 
 
         // создаем locationCallback
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(p0: LocationResult) {
-                p0?: return
-                previousVolume = audioManager.mediaCurrentVolume
-                val currentTime = Calendar.getInstance().time
-                val hour = currentTime.hours
-                for (location in p0.locations){
-                    navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
-                    if(navigatorViewModel.uiState.inDangerous){
-                        if((nightSetting) or !( hour in 0..6 )){
-                            if(pushSetting) notificationManager.notify(1, notification.build())
-                            if(soundSetting) {
-                                if(audioManager.mediaCurrentVolume >5)audioManager.setMediaVolume(5)
-                            }
-                        }
+//        locationCallback = object : LocationCallback() {
+//            override fun onLocationResult(p0: LocationResult) {
+//                p0?: return
+//                previousVolume = audioManager.mediaCurrentVolume
+//                val currentTime = Calendar.getInstance().time
+//                val hour = currentTime.hours
+//                for (location in p0.locations){
+//                    navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
+//                    if(navigatorViewModel.uiState.inDangerous){
+//                        if((nightSetting) or !( hour in 0..6 )){
+//                            if(pushSetting) notificationManager.notify(1, notification.build())
+//                            if(soundSetting) {
+//                                if(audioManager.mediaCurrentVolume >5)audioManager.setMediaVolume(5)
+//                            }
+//                        }
+//
+//                        //zvuk
+//                        //val previousVolume: Int = audioManager.mediaCurrentVolume
+//                        //audioManager.setMediaVolume(3)
+//                        //Thread.sleep(3000)
+//                        //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
+//                    } else{
+//                        if(nightSetting){
+//                            if(pushSetting) audioManager.setMediaVolume(previousVolume)
+//                            if(soundSetting) notificationManager.cancel(1)
+//                        }
+//
+//                    }
+//                }
+//            }
+//        }
 
-                        //zvuk
-                        //val previousVolume: Int = audioManager.mediaCurrentVolume
-                        //audioManager.setMediaVolume(3)
-                        //Thread.sleep(3000)
-                        //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
-                    } else{
-                        if(nightSetting){
-                            if(pushSetting) audioManager.setMediaVolume(previousVolume)
-                            if(soundSetting) notificationManager.cancel(1)
-                        }
 
+    }
+
+
+
+
+    val broadcastLocationReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val latitude = intent.getDoubleExtra(LocationService.KEY_LATITUDE,0.0)
+            val longitude = intent.getDoubleExtra(LocationService.KEY_LONGITUDE,0.0)
+            val notification = NotificationCompat.Builder(this@MainActivity, "userRiskInteraction")
+                .setContentText("Оглянись! Рядом дорога.")
+                .setContentTitle("Safety Live")
+                .setSmallIcon(R.drawable.notify_icon_foreground)
+                .setPriority(NotificationManager.IMPORTANCE_HIGH)
+                .setOngoing(true)
+            previousVolume = audioManager.mediaCurrentVolume
+            val currentTime = Calendar.getInstance().time
+            val hour = currentTime.hours
+            navigatorViewModel.updateCoordinates(latitude, longitude, angle)
+            if(navigatorViewModel.uiState.inDangerous){
+                if((nightSetting) or !( hour in 0..6 )){
+                    if(pushSetting) notificationManager.notify(1, notification.build())
+                    if(soundSetting) {
+                        if(audioManager.mediaCurrentVolume >5)audioManager.setMediaVolume(5)
                     }
                 }
+
+                //zvuk
+                //val previousVolume: Int = audioManager.mediaCurrentVolume
+                //audioManager.setMediaVolume(3)
+                //Thread.sleep(3000)
+                //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
+            } else{
+                if(nightSetting){
+                    if(pushSetting) audioManager.setMediaVolume(previousVolume)
+                    if(soundSetting) notificationManager.cancel(1)
+                }
+
             }
         }
     }
@@ -190,17 +229,17 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         startForegroundServiceForSensors()
-        if (true) startLocationUpdates() // вообще вместо true стоит requestingLocationUpdate
+        //if (true) startLocationUpdates() // вообще вместо true стоит requestingLocationUpdate
     }
 
-    private fun startLocationUpdates() {
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 10101)
-        }
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
-            locationCallback,
-            Looper.getMainLooper())
-    }
+//    private fun startLocationUpdates() {
+//        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 10101)
+//        }
+//        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
+//            locationCallback,
+//            Looper.getMainLooper())
+//    }
 
     private fun startForegroundServiceForSensors() {
         val locatyIntent = Intent(this, LocatyService::class.java)
@@ -273,6 +312,8 @@ class MainActivity : AppCompatActivity() {
             angle = intent.getDoubleExtra(LocatyService.KEY_ANGLE,angle)
         }
     }
+
+
 
     override fun onDestroy() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
