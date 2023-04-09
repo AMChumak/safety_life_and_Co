@@ -92,11 +92,24 @@ class MainActivity : AppCompatActivity() {
 
 
             if(isActive){
+                // Stop foreground service
+                Intent(applicationContext, LocationService::class.java).apply {
+                    action = LocationService.ACTION_STOP
+                    startService(this)
+                }
+
                 isActive = !isActive
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button)
                 backgroundImage.setImageResource(R.drawable.turnon)
                 //notificationManager.cancel(1);
             } else{
+                // Start foreground service
+                Intent(applicationContext, LocationService::class.java).apply {
+                    action = LocationService.ACTION_START
+                    startService(this)
+                }
+
+
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button_active)
                 backgroundImage.setImageResource(R.drawable.turnon_active)
 
