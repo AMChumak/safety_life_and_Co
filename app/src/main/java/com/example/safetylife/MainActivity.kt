@@ -140,9 +140,9 @@ class MainActivity : AppCompatActivity() {
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastLocationReceiver,  IntentFilter(LocationService.KEY_ON_LOCATION_CHANGED_ACTION))
         // поделючение JSON
         try{
-            val jsonPointsString  = getJSONFromAssets("log_298.json")
+            val jsonPointsString  = getJSONFromAssets("log_300.json")
             val points = Gson().fromJson(jsonPointsString, PointsOnRoard::class.java)
-            val jsonQuadrantsString  = getJSONFromAssets("chunk_log_298.json")
+            val jsonQuadrantsString  = getJSONFromAssets("chunk_log_302.json")
             val quadrants = Gson().fromJson(jsonQuadrantsString, QuadrantsOnMap::class.java)
             navigatorViewModel.loadMapPointsAndQuadrants(points.points, quadrants.quadrants)
         } catch (e: JSONException){
@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        // создаем locationCallback
+//         создаем locationCallback
 //        locationCallback = object : LocationCallback() {
 //            override fun onLocationResult(p0: LocationResult) {
 //                p0?: return
@@ -182,9 +182,7 @@ class MainActivity : AppCompatActivity() {
 //                }
 //            }
 //        }
-
-
-    }
+     }
 
 
 
@@ -194,9 +192,9 @@ class MainActivity : AppCompatActivity() {
             val latitude = intent.getDoubleExtra(LocationService.KEY_LATITUDE,0.0)
             val longitude = intent.getDoubleExtra(LocationService.KEY_LONGITUDE,0.0)
             val notification = NotificationCompat.Builder(this@MainActivity, "userRiskInteraction")
-                .setContentText("Оглянись! Рядом дорога.")
-                .setContentTitle("Safety Live")
-                .setSmallIcon(R.drawable.notify_icon_foreground)
+                .setContentText("Отвлекитксь от смартфона")
+                .setContentTitle("Переходите дорогу?")
+                .setSmallIcon(R.drawable.logo)
                 .setPriority(NotificationManager.IMPORTANCE_HIGH)
                 .setOngoing(true)
             previousVolume = audioManager.mediaCurrentVolume
@@ -211,11 +209,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                //zvuk
-                //val previousVolume: Int = audioManager.mediaCurrentVolume
-                //audioManager.setMediaVolume(3)
-                //Thread.sleep(3000)
-                //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
             } else{
                 if(nightSetting){
                     if(pushSetting) audioManager.setMediaVolume(previousVolume)

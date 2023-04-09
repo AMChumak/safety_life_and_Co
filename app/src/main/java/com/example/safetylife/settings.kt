@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.safetylife.data.nightSetting
 import com.example.safetylife.data.pushSetting
 import com.example.safetylife.data.soundSetting
-
+import com.example.safetylife.R
 
 
 class settings : AppCompatActivity() {
@@ -49,17 +49,12 @@ class settings : AppCompatActivity() {
         startActivity(intent)
     }
 
-    fun openAlert(v : View) {
-        val intent = Intent(this, FullScreenAlert::class.java)
-        startActivity(intent)
-    }
-
     fun settingPriority(v: View){
         startActivity(Intent(Settings.ACTION_SETTINGS))
     }
     fun showAlertDialogButtonClicked() {
         // Create an alert builder
-        val builder = AlertDialog.Builder(this)
+        val builder = Builder(this)
         builder.setTitle("Name")
 
         // set the custom layout
