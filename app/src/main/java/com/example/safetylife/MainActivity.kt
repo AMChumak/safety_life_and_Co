@@ -2,36 +2,37 @@ package com.example.safetylife
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Geocoder
 import android.media.AudioManager
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
-import android.provider.Settings
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Switch
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.fragment.app.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.navigationandmap.ui.NavigatorViewModel
-import com.example.navigationandmap.ui.User
 import com.example.navigationandmap.ui.models.PointsOnRoard
 import com.example.navigationandmap.ui.models.QuadrantsOnMap
+import com.example.safetylife.data.nightSetting
+import com.example.safetylife.data.pushSetting
+import com.example.safetylife.data.soundSetting
 import com.google.android.gms.location.*
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.collect
 import org.json.JSONException
 import java.io.IOException
 import java.nio.charset.Charset
@@ -52,11 +53,15 @@ class MainActivity : AppCompatActivity() {
 
     fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
-    @SuppressLint("ResourceAsColor")
+    @SuppressLint("ResourceAsColor", "MissingInflatedId", "UseSwitchCompatOrMaterialCode")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().apply {
+
+        }
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         setContentView(R.layout.activity_main)
+
 
         getSupportActionBar()?.setTitle("Safety Life")
         // sd
@@ -66,7 +71,10 @@ class MainActivity : AppCompatActivity() {
 
         val audioManager: AudioManager =
             getSystemService(AUDIO_SERVICE) as AudioManager
-        val previousVolume: Int = audioManager.mediaCurrentVolume
+        var previousVolume: Int = audioManager.mediaCurrentVolume
+
+
+
 
         createChannel("userRiskInteraction", "Опасные ситуации")
         val notification = NotificationCompat.Builder(this, "userRiskInteraction")
@@ -92,7 +100,7 @@ class MainActivity : AppCompatActivity() {
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button_active)
                 backgroundImage.setImageResource(R.drawable.turnon_active)
 
-                val text = findViewById<TextView>(R.id.textViewConsole)
+                /*val text = findViewById<TextView>(R.id.textViewConsole)
                 text.text = "Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
                         "latitude: ${navigatorViewModel.uiState.latitude.format(3)}   longitude: ${navigatorViewModel.uiState.longitude.format(3)}\n" +
                         "direction: ${navigatorViewModel.uiState.direction.format(3)}\n" +
@@ -102,7 +110,7 @@ class MainActivity : AppCompatActivity() {
                         "pointX: ${navigatorViewModel.uiState.pointX}   pointY: ${navigatorViewModel.uiState.pointY}"
 
                 Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
-                        "latitude: ${navigatorViewModel.uiState.inDangerous}",Toast.LENGTH_SHORT).show()
+                        "latitude: ${navigatorViewModel.uiState.inDangerous}",Toast.LENGTH_SHORT).show()*/
 
                 isActive = !isActive
             }
@@ -131,23 +139,35 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
 
+
         // создаем locationCallback
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
                 p0?: return
+                previousVolume = audioManager.mediaCurrentVolume
+                val currentTime = Calendar.getInstance().time
+                val hour = currentTime.hours
                 for (location in p0.locations){
                     navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
                     if(navigatorViewModel.uiState.inDangerous){
-                        notificationManager.notify(1, notification.build())
-                        audioManager.setMediaVolume(5)
+                        if((nightSetting) or !( hour in 0..6 )){
+                            if(pushSetting) notificationManager.notify(1, notification.build())
+                            if(soundSetting) {
+                                if(audioManager.mediaCurrentVolume >5)audioManager.setMediaVolume(5)
+                            }
+                        }
+
                         //zvuk
                         //val previousVolume: Int = audioManager.mediaCurrentVolume
                         //audioManager.setMediaVolume(3)
                         //Thread.sleep(3000)
                         //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
                     } else{
-                        audioManager.setMediaVolume(previousVolume)
-                        notificationManager.cancel(1)
+                        if(nightSetting){
+                            if(pushSetting) audioManager.setMediaVolume(previousVolume)
+                            if(soundSetting) notificationManager.cancel(1)
+                        }
+
                     }
                 }
             }

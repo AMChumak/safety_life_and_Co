@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="StartApp" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#130f40</item>
+        
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_baseline_location_on_24</item>
+        <item name="postSplashScreenTheme">@style/Theme.SafetyLife</item>
+    </style>
+</resources>

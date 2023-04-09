@@ -7,18 +7,9 @@
     android:background="#130f40"
     tools:context=".settings">
 
-    <TextView
-        android:id="@+id/textView8"
-        android:layout_width="271dp"
-        android:layout_height="69dp"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/radius"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
     <TextView
-        android:id="@+id/textView7"
+        android:id="@+id/textView8"
         android:layout_width="271dp"
         android:layout_height="69dp"
         android:layout_marginTop="16dp"
@@ -67,7 +58,8 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView5"
         app:layout_constraintEnd_toEndOf="@+id/textView5"
         app:layout_constraintTop_toTopOf="@+id/textView5"
-        app:layout_constraintVertical_bias="0.531" />
+        app:layout_constraintVertical_bias="0.531"
+        android:checked="true"/>
 
     <TextView
         android:id="@+id/textView10"
@@ -80,17 +72,7 @@
         app:layout_constraintStart_toStartOf="@+id/textView6"
         app:layout_constraintTop_toTopOf="@+id/textView6" />
 
-    <TextView
-        android:id="@+id/textView11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Уведомления о погоде"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/textView7"
-        app:layout_constraintStart_toStartOf="@+id/textView7"
-        app:layout_constraintTop_toTopOf="@+id/textView7"
-        app:layout_constraintVertical_bias="0.53" />
+
 
     <TextView
         android:id="@+id/textView12"
@@ -112,17 +94,10 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView6"
         app:layout_constraintEnd_toEndOf="@+id/textView6"
         app:layout_constraintTop_toTopOf="@+id/textView6"
-        app:layout_constraintVertical_bias="0.531" />
+        app:layout_constraintVertical_bias="0.531"
+        android:checked="true"/>
 
-    <Switch
-        android:id="@+id/switch3"
-        android:layout_width="50dp"
-        android:layout_height="29dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView7"
-        app:layout_constraintEnd_toEndOf="@+id/textView7"
-        app:layout_constraintTop_toTopOf="@+id/textView7"
-        app:layout_constraintVertical_bias="0.531" />
+
 
     <Switch
         android:id="@+id/switch4"
@@ -132,21 +107,23 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView8"
         app:layout_constraintEnd_toEndOf="@+id/textView8"
         app:layout_constraintTop_toTopOf="@+id/textView8"
-        app:layout_constraintVertical_bias="0.531" />
+        app:layout_constraintVertical_bias="0.531"
+        android:checked="true"/>
 
     <Button
         android:id="@+id/button"
         android:layout_width="271dp"
         android:layout_height="69dp"
-        android:layout_marginBottom="20dp"
         android:backgroundTint="#5D51ED"
         android:onClick="settingPriority"
         android:text="Установить высокий приоритет"
         android:textColor="#FFFFFF"
-        app:layout_constraintBottom_toTopOf="@+id/button4"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
+    <!--
     <Button
         android:id="@+id/button4"
         android:layout_width="271dp"
@@ -172,5 +149,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.954"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" /> -->
 </androidx.constraintlayout.widget.ConstraintLayout>

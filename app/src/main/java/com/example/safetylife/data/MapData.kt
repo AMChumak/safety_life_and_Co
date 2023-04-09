@@ -1,5 +1,8 @@
 package com.example.safetylife.data
 
+var pushSetting = true
+var nightSetting = true
+var soundSetting = true
 const val topLatitude: Double = 53.394963
 const val startLongitude: Double = 83.640446
 const val bottomLatitude: Double = 53.318944
