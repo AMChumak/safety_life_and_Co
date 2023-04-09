@@ -65,11 +65,11 @@ class LocationService: Service() {
                 val updatedNotification = notification.setContentText(
                     "Location: ($lat, $long)"
                 )
-                notificationManager.notify(1, updatedNotification.build())
+                notificationManager.notify(2, updatedNotification.build())
             }
             .launchIn(serviceScope)
 
-        startForeground(1, notification.build())
+        startForeground(2, notification.build())
     }
 
     private fun stop() {
