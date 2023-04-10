@@ -15,4 +15,5 @@ data class User(
     var type: Int = -1,
     var sizeRoad: Int = 0,
     var dist: Double = 0.0,
+    var activityType:String = "WALKING"
 )

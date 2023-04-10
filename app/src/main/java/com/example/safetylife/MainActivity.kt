@@ -2,18 +2,16 @@ package com.example.safetylife
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.*
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
@@ -25,23 +23,27 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.navigationandmap.ui.NavigatorViewModel
 import com.example.navigationandmap.ui.models.PointsOnRoard
 import com.example.navigationandmap.ui.models.QuadrantsOnMap
+import com.example.safetylife.data.Constants
 import com.example.safetylife.data.nightSetting
 import com.example.safetylife.data.pushSetting
 import com.example.safetylife.data.soundSetting
 import com.google.android.gms.location.*
 import com.google.gson.Gson
 import org.json.JSONException
+import pub.devrel.easypermissions.AppSettingsDialog
+import pub.devrel.easypermissions.EasyPermissions
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), EasyPermissions.PermissionCallbacks {
     var pref : SharedPreferences? = null
     private lateinit var geocoder: Geocoder
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val TAG = "MainActivity"
     var isActive = false
 
+    private lateinit var client: ActivityRecognitionClient
 
     private val navigatorViewModel: NavigatorViewModel by viewModels()
     private val locationRequest: LocationRequest = createLocationRequest()
@@ -62,6 +64,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_main)
+        val prefs1 = getSharedPreferences("push", MODE_PRIVATE)
+        val prefs2 = getSharedPreferences("night", MODE_PRIVATE)
+        val prefs3 = getSharedPreferences("sound", MODE_PRIVATE)
+        pushSetting = prefs1.getBoolean("switchState", true)
+        nightSetting = prefs2.getBoolean("switchState", true)
+        soundSetting = prefs3.getBoolean("switchState", true)
 
 
         getSupportActionBar()?.setTitle("Safety Life")
@@ -76,16 +84,13 @@ class MainActivity : AppCompatActivity() {
             getSystemService(AUDIO_SERVICE) as AudioManager
         previousVolume = audioManager.mediaCurrentVolume
 
-
-
+        client = ActivityRecognition.getClient(this)
 
         val a = findViewById<Button>(R.id.button2)
         val buttobState = findViewById<Button>(R.id.button2)
         val backgroundImage = findViewById<ImageView>(R.id.imageView2)
 
         fun active(){
-
-
             if(isActive){
                 // Stop foreground service
                 Intent(applicationContext, LocationService::class.java).apply {
@@ -96,7 +101,6 @@ class MainActivity : AppCompatActivity() {
                 isActive = !isActive
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button)
                 backgroundImage.setImageResource(R.drawable.turnon)
-                //notificationManager.cancel(1);
             } else{
                 // Start foreground service
                 Intent(applicationContext, LocationService::class.java).apply {
@@ -104,40 +108,24 @@ class MainActivity : AppCompatActivity() {
                     startService(this)
                 }
 
-
                 buttobState.setBackgroundResource(R.drawable.circle_onoff_button_active)
                 backgroundImage.setImageResource(R.drawable.turnon_active)
-
-                /*val text = findViewById<TextView>(R.id.textViewConsole)
-                text.text = "Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
-                        "latitude: ${navigatorViewModel.uiState.latitude.format(3)}   longitude: ${navigatorViewModel.uiState.longitude.format(3)}\n" +
-                        "direction: ${navigatorViewModel.uiState.direction.format(3)}\n" +
-                        "userX: ${navigatorViewModel.uiState.userX.format(3)}   userY: ${navigatorViewModel.uiState.userY.format(3)}\n" +
-                        "movedX: ${navigatorViewModel.uiState.userMovedX.format(3)}   movedY: ${navigatorViewModel.uiState.userMovedY.format(3)}\n" +
-                        "point: ${navigatorViewModel.uiState.closestPoint}   size: ${navigatorViewModel.uiState.sizeRoad} type: ${navigatorViewModel.uiState.type}\n" +
-                        "pointX: ${navigatorViewModel.uiState.pointX}   pointY: ${navigatorViewModel.uiState.pointY}"
-
-                Toast.makeText(this,"Distance:${navigatorViewModel.uiState.dist.format(4)}\n" +
-                        "latitude: ${navigatorViewModel.uiState.inDangerous}",Toast.LENGTH_SHORT).show()*/
-
                 isActive = !isActive
             }
-            //notificationManager.notify(1, notification.build()) // !1
         }
         a.setOnClickListener {
             active()
         }
-
-
-
-        pref = getSharedPreferences("Pass", MODE_PRIVATE)
-        var test = pref?.getString("pass", "hi")!!
 
         //для компаса
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver,  IntentFilter(LocatyService.KEY_ON_SENSOR_CHANGED_ACTION))
 
         //для геолокации
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastLocationReceiver,  IntentFilter(LocationService.KEY_ON_LOCATION_CHANGED_ACTION))
+
+        // подключение измерения скорости
+        LocalBroadcastManager.getInstance(this).registerReceiver(activityTransitionReceiver,  IntentFilter(ActivityTransitionReceiver.KEY_ON_ACTIVITY_TYPE_CHANGED_ACTION))
+
         // поделючение JSON
         try{
             val jsonPointsString  = getJSONFromAssets("log_300.json")
@@ -149,72 +137,110 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         }
 
-
-//         создаем locationCallback
-//        locationCallback = object : LocationCallback() {
-//            override fun onLocationResult(p0: LocationResult) {
-//                p0?: return
-//                previousVolume = audioManager.mediaCurrentVolume
-//                val currentTime = Calendar.getInstance().time
-//                val hour = currentTime.hours
-//                for (location in p0.locations){
-//                    navigatorViewModel.updateCoordinates(location.latitude, location.longitude, angle)
-//                    if(navigatorViewModel.uiState.inDangerous){
-//                        if((nightSetting) or !( hour in 0..6 )){
-//                            if(pushSetting) notificationManager.notify(1, notification.build())
-//                            if(soundSetting) {
-//                                if(audioManager.mediaCurrentVolume >5)audioManager.setMediaVolume(5)
-//                            }
-//                        }
-//
-//                        //zvuk
-//                        //val previousVolume: Int = audioManager.mediaCurrentVolume
-//                        //audioManager.setMediaVolume(3)
-//                        //Thread.sleep(3000)
-//                        //if (audioManager.mediaCurrentVolume ==3) audioManager.setMediaVolume(previousVolume)
-//                    } else{
-//                        if(nightSetting){
-//                            if(pushSetting) audioManager.setMediaVolume(previousVolume)
-//                            if(soundSetting) notificationManager.cancel(1)
-//                        }
-//
-//                    }
-//                }
-//            }
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            // check for permission
+            && !ActivityTransitionsUtil.hasActivityTransitionPermissions(this)
+        ) {
+            // request for permission
+            requestActivityTransitionPermission()
+        } else {
+            // when permission is already allowed
+            requestForUpdates()
+        }
      }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        requestForUpdates()
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms)) {
+            AppSettingsDialog.Builder(this).build().show()
+        } else {
+            requestActivityTransitionPermission()
+        }
+    }
+
+    private fun requestForUpdates() {
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        client
+            .requestActivityTransitionUpdates(
+                ActivityTransitionsUtil.getActivityTransitionRequest(),
+                getPendingIntent()
+            )
+    }
+
+    private fun getPendingIntent(): PendingIntent {
+        val intent = Intent(this, ActivityTransitionReceiver::class.java)
+        return PendingIntent.getBroadcast(
+            this,
+            Constants.REQUEST_CODE_INTENT_ACTIVITY_TRANSITION,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    private fun requestActivityTransitionPermission() {
+        EasyPermissions.requestPermissions(
+            this,
+            "You need to allow Activity Transition Permissions in order to recognize your activities",
+            Constants.REQUEST_CODE_ACTIVITY_TRANSITION,
+            Manifest.permission.ACTIVITY_RECOGNITION
+        )
+    }
 
 
 
+    var isSoundFaded = false;
+    var soundFadedTime = 0L;
     val broadcastLocationReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val latitude = intent.getDoubleExtra(LocationService.KEY_LATITUDE,0.0)
             val longitude = intent.getDoubleExtra(LocationService.KEY_LONGITUDE,0.0)
             val notification = NotificationCompat.Builder(this@MainActivity, "userRiskInteraction")
-                .setContentText("Отвлекитксь от смартфона")
+                .setContentText("Отвлекитесь от смартфона")
                 .setContentTitle("Переходите дорогу?")
                 .setSmallIcon(R.drawable.logo)
                 .setPriority(NotificationManager.IMPORTANCE_HIGH)
                 .setOngoing(true)
-            previousVolume = audioManager.mediaCurrentVolume
             val currentTime = Calendar.getInstance().time
             val hour = currentTime.hours
             navigatorViewModel.updateCoordinates(latitude, longitude, angle)
+            // Ответная реакция
             if(navigatorViewModel.uiState.inDangerous){
                 if((nightSetting) or !( hour in 0..6 )){
                     if(pushSetting) notificationManager.notify(1, notification.build())
                     if(soundSetting) {
-                        if(audioManager.mediaCurrentVolume >5)audioManager.setMediaVolume(5)
+                        if(audioManager.mediaCurrentVolume >= 5 && ((System.currentTimeMillis() - soundFadedTime) > 20000)) {
+                            previousVolume = audioManager.mediaCurrentVolume
+                            audioManager.setMediaVolume(5)
+                            isSoundFaded = true;
+                            soundFadedTime = System.currentTimeMillis();
+                        }
                     }
                 }
 
-            } else{
+            } else if (isSoundFaded && ((System.currentTimeMillis() - soundFadedTime) > 20000)) {
                 if(nightSetting){
                     if(pushSetting) audioManager.setMediaVolume(previousVolume)
                     if(soundSetting) notificationManager.cancel(1)
+                    isSoundFaded = false;
                 }
-
             }
         }
     }
@@ -222,17 +248,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         startForegroundServiceForSensors()
-        //if (true) startLocationUpdates() // вообще вместо true стоит requestingLocationUpdate
     }
-
-//    private fun startLocationUpdates() {
-//        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 10101)
-//        }
-//        fusedLocationProviderClient.requestLocationUpdates(locationRequest,
-//            locationCallback,
-//            Looper.getMainLooper())
-//    }
 
     private fun startForegroundServiceForSensors() {
         val locatyIntent = Intent(this, LocatyService::class.java)
@@ -247,7 +263,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun getLoaction(){
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 10101)
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACTIVITY_RECOGNITION), 10101)
         }
 
         val lastLocation = fusedLocationProviderClient.lastLocation
@@ -318,8 +334,27 @@ class MainActivity : AppCompatActivity() {
         this.setStreamVolume(
             AudioManager.STREAM_MUSIC, // Stream type
             volumeIndex, // Volume index
-            0// Flags
+            AudioManager.FLAG_SHOW_UI
         )
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        // пишем нужное в SharedPreferences
+
+        val ed1 = getSharedPreferences("push", MODE_PRIVATE).edit()
+        val ed2 = getSharedPreferences("night", MODE_PRIVATE).edit()
+        val ed3 = getSharedPreferences("sound", MODE_PRIVATE).edit()
+
+
+        ed1.putBoolean("switchState", pushSetting)
+        ed1.commit()
+        ed2.putBoolean("switchState", nightSetting)
+        ed2.commit()
+        ed3.putBoolean("switchState", soundSetting)
+        ed3.commit()
+        var prefs: MutableList<SharedPreferences.Editor> = mutableListOf(ed1, ed2, ed3)
     }
 
     // Extension property to get media maximum volume index
@@ -330,4 +365,10 @@ class MainActivity : AppCompatActivity() {
     val AudioManager.mediaCurrentVolume:Int
         get() = this.getStreamVolume(AudioManager.STREAM_MUSIC)
 
+    private val activityTransitionReceiver : BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val newActivityType = intent.getStringExtra(ActivityTransitionReceiver.ACTIVITY_TYPE) ?: "WALKING"
+            navigatorViewModel.updateActivityType(newActivityType)
+        }
+    }
 }

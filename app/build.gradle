@@ -8,7 +8,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.safetylife12"
+        applicationId "com.example.safetylife13"
         minSdk 21
         targetSdk 33
         versionCode 1
@@ -33,7 +33,6 @@ android {
 }
 
 dependencies {
-
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.7.0'
@@ -43,7 +42,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
     implementation 'androidx.fragment:fragment-ktx:1.5.6'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation ("androidx.core:core-splashscreen:1.0.0")
+    implementation 'androidx.core:core-splashscreen:1.0.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
@@ -53,4 +52,5 @@ dependencies {
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.compose.material:material:1.2.0'
+    implementation 'pub.devrel:easypermissions:3.0.0'
 }

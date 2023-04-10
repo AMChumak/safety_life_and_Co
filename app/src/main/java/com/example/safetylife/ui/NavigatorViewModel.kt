@@ -1,7 +1,6 @@
 package com.example.navigationandmap.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
-
 import com.example.navigationandmap.ui.models.PointModelClass
 import com.example.navigationandmap.ui.models.QuadrantModelClass
 import com.example.navigationandmap.ui.models.QuadrantsOnMap
@@ -79,13 +78,15 @@ class NavigatorViewModel : ViewModel() {
         _uiState.type = typeCon
         _uiState.dist = minDist
 
-        // прибавляем координаты компаса
-        lastX += userVector[0]
-        lastY += userVector[1]
+        if(uiState.activityType != "STILL"){
+            // прибавляем координаты компаса
+            lastX += userVector[0]
+            lastY += userVector[1]
 
-        isInDangerous = checkDanger()
+            isInDangerous = checkDanger()
 
-        _uiState.inDangerous = isInDangerous || uiState.inDangerous
+            _uiState.inDangerous = (isInDangerous || uiState.inDangerous) && (uiState.activityType == "WALKING" || uiState.activityType == "RUNNING" || uiState.activityType == "UNKNOWN")
+        }
     }
 
     private fun checkDanger(): Boolean{
@@ -301,6 +302,11 @@ class NavigatorViewModel : ViewModel() {
             userVector[0] = -cos(angle / 180.0 * PI - 3 * PI/2) * pedestrianSpeed
             userVector[1] = -sin(angle / 180.0 * PI - 3 * PI/2) * pedestrianSpeed
         }
+    }
+
+
+    fun updateActivityType(type:String){
+        _uiState.activityType = type
     }
 
 }

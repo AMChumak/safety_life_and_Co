@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
 
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -23,20 +24,6 @@
         android:theme="@style/Theme.SafetyLife"
         tools:targetApi="31">
         <service android:name=".LocationService" android:foregroundServiceType="location" />
-        <activity
-            android:name=".Control"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".FullScreenAlert"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
         <activity
             android:name=".settings"
             android:exported="false">
@@ -59,6 +46,15 @@
                 android:value="" />
         </activity>
         <service android:name=".LocatyService" />
+        <receiver
+            android:name=".ActivityTransitionReceiver"
+            android:exported="false"
+            android:permission="com.google.android.gms.permission.ACTIVITY_RECOGNITION">
+
+            <intent-filter>
+                <action android:name="action.TRANSITIONS_DATA"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -58,8 +58,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView5"
         app:layout_constraintEnd_toEndOf="@+id/textView5"
         app:layout_constraintTop_toTopOf="@+id/textView5"
-        app:layout_constraintVertical_bias="0.531"
-        android:checked="true"/>
+        app:layout_constraintVertical_bias="0.531" />
 
     <TextView
         android:id="@+id/textView10"
@@ -94,8 +93,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/textView6"
         app:layout_constraintEnd_toEndOf="@+id/textView6"
         app:layout_constraintTop_toTopOf="@+id/textView6"
-        app:layout_constraintVertical_bias="0.531"
-        android:checked="true"/>
+        app:layout_constraintVertical_bias="0.531" />
 
 
 
@@ -108,7 +106,7 @@
         app:layout_constraintEnd_toEndOf="@+id/textView8"
         app:layout_constraintTop_toTopOf="@+id/textView8"
         app:layout_constraintVertical_bias="0.531"
-        android:checked="true"/>
+        />
 
     <Button
         android:id="@+id/button"
@@ -121,7 +119,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+        app:layout_constraintTop_toBottomOf="@+id/textView8"
+        app:layout_constraintVertical_bias="0.785" />
 
     <!--
     <Button
@@ -136,7 +135,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
     <Button
         android:id="@+id/button5"
         android:layout_width="59dp"

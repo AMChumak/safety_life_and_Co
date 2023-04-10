@@ -16,3 +16,7 @@ const val quotientVertical: Double = heightInPixels / (topLatitude - bottomLatit
 const val maxDistanceBetweenPointsOnSameRoad: Double = 108.0
 const val pedestrianSpeed: Double = 3.0
 
+object Constants {
+    const val REQUEST_CODE_ACTIVITY_TRANSITION = 123
+    const val REQUEST_CODE_INTENT_ACTIVITY_TRANSITION = 122
+}
