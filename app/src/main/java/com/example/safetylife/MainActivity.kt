@@ -2,7 +2,6 @@ package com.example.safetylife
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
@@ -11,9 +10,7 @@ import android.location.Geocoder
 import android.media.AudioManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.activity.viewModels
@@ -34,6 +31,7 @@ import org.json.JSONException
 import java.io.IOException
 import java.nio.charset.Charset
 import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
     var pref : SharedPreferences? = null
@@ -61,7 +59,14 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+
         setContentView(R.layout.activity_main)
+        val prefs1 = getSharedPreferences("push", MODE_PRIVATE)
+        val prefs2 = getSharedPreferences("night", MODE_PRIVATE)
+        val prefs3 = getSharedPreferences("sound", MODE_PRIVATE)
+        pushSetting = prefs1.getBoolean("switchState", true)
+        nightSetting = prefs2.getBoolean("switchState", true)
+        soundSetting = prefs3.getBoolean("switchState", true)
 
 
         getSupportActionBar()?.setTitle("Safety Life")
@@ -219,6 +224,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onResume() {
         super.onResume()
         startForegroundServiceForSensors()
@@ -241,6 +247,7 @@ class MainActivity : AppCompatActivity() {
 
     fun openAct(v : View) {
         val intent = Intent(this, settings::class.java)
+
         startActivity(intent)
     }
 
@@ -330,4 +337,22 @@ class MainActivity : AppCompatActivity() {
     val AudioManager.mediaCurrentVolume:Int
         get() = this.getStreamVolume(AudioManager.STREAM_MUSIC)
 
+    override fun onPause() {
+        super.onPause()
+
+        // пишем нужное в SharedPreferences
+
+        val ed1 = getSharedPreferences("push", MODE_PRIVATE).edit()
+        val ed2 = getSharedPreferences("night", MODE_PRIVATE).edit()
+        val ed3 = getSharedPreferences("sound", MODE_PRIVATE).edit()
+
+
+        ed1.putBoolean("switchState", pushSetting)
+        ed1.commit()
+        ed2.putBoolean("switchState", nightSetting)
+        ed2.commit()
+        ed3.putBoolean("switchState", soundSetting)
+        ed3.commit()
+        var prefs: MutableList<SharedPreferences.Editor> = mutableListOf(ed1, ed2, ed3)
+    }
 }

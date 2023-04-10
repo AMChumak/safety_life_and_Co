@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.app.AlertDialog.Builder
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -26,6 +27,10 @@ class settings : AppCompatActivity() {
         val pushSwitch = findViewById<Switch>(R.id.switch1)
         val nightSwitch = findViewById<Switch>(R.id.switch2)
         val soundSwitch = findViewById<Switch>(R.id.switch4)
+
+        pushSwitch.isChecked = pushSetting
+        nightSwitch.isChecked = nightSetting
+        soundSwitch.isChecked = soundSetting
         pushSwitch.setOnClickListener{
             pushSetting = pushSwitch.isChecked
         }
@@ -79,5 +84,23 @@ class settings : AppCompatActivity() {
     // Do something with the data coming from the AlertDialog
     private fun sendDialogDataToActivity(data: String) {
         Toast.makeText(this, data, Toast.LENGTH_SHORT).show()
+    }
+    override fun onPause() {
+        super.onPause()
+
+        // пишем нужное в SharedPreferences
+
+        val ed1 = getSharedPreferences("push", MODE_PRIVATE).edit()
+        val ed2 = getSharedPreferences("night", MODE_PRIVATE).edit()
+        val ed3 = getSharedPreferences("sound", MODE_PRIVATE).edit()
+
+
+        ed1.putBoolean("switchState", pushSetting)
+        ed1.commit()
+        ed2.putBoolean("switchState", nightSetting)
+        ed2.commit()
+        ed3.putBoolean("switchState", soundSetting)
+        ed3.commit()
+
     }
 }
