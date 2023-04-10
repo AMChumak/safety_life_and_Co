@@ -1,6 +1,7 @@
 package com.example.safetylife
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -41,6 +42,24 @@ class settings : AppCompatActivity() {
         startActivity(Intent(Settings.ACTION_SETTINGS))
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        // пишем нужное в SharedPreferences
+
+        val ed1 = getSharedPreferences("push", MODE_PRIVATE).edit()
+        val ed2 = getSharedPreferences("night", MODE_PRIVATE).edit()
+        val ed3 = getSharedPreferences("sound", MODE_PRIVATE).edit()
+
+
+        ed1.putBoolean("switchState", pushSetting)
+        ed1.commit()
+        ed2.putBoolean("switchState", nightSetting)
+        ed2.commit()
+        ed3.putBoolean("switchState", soundSetting)
+        ed3.commit()
+
+    }
     override fun onPause() {
         super.onPause()
 
